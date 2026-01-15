@@ -19,8 +19,6 @@ library(ggpubr)
 library(here)
 ```
 
-
-
 ## What we are learning so far {.scrollable}
 
 How to find the "right" tool for the job
@@ -35,7 +33,7 @@ How to find the "right" tool for the job
 
     -   some parameters impact model transfer function, other I/O formatting
 
-# Answer to visual check 
+# Answer to visual check
 
 # My code to find issue and clean data {.scrollable}
 
@@ -91,7 +89,7 @@ site1 <- solarpv(area = 0.1, solar = sierraczosolar)
 
 ## Playing with models {.scrollable}
 
-::: {.concept-box}
+::: concept-box
 We often build models to try different options
 
 **Model inputs**: solar radiation (daily direct and diffuse)
@@ -103,7 +101,7 @@ We often build models to try different options
 
 How would a lower efficiency impact mean power generated?
 
-*eff* – 0.6 instead of default 0.8  
+*eff* – 0.6 instead of default 0.8
 
 try it
 
@@ -126,11 +124,9 @@ site2$mean
 (0.6-0.8)/0.8 * 100
 ```
 
-
 ## Informal Sensitivity Analysis {.scrollable}
 
-What happens when we vary parameters?
-  * Not always obvious when transfer function is non-linear or multi-part
+What happens when we vary parameters? \* Not always obvious when transfer function is non-linear or multi-part
 
 **Informal** - just try varying parameters
 
@@ -178,7 +174,11 @@ Mean 0.6 standard deviation of 0.1
 
 ## R code {.scrollable}
 
-Lets do this together
+Lets do this together -
+
+First, come put with multiple samples from our function
+
+Second, run model over generated sample
 
 ```{r sen1, eval=T, echo=TRUE}
 library(tidyverse)
@@ -192,11 +192,12 @@ eff <- rnorm(mean = 0.6, sd = 0.1, n = 20)
 # use map from purrr to run model for all values of eff
 # notice how map adds the one parameter that is missing from the input list
 
-site2 <- eff %>% map(~ solarpv(area = 0.1, 
+site2 <- eff %>% map(~ solarpv(area = 0.1,  # Give it all the paramters 
   solar = sierraczosolar, clr = "green", 
   eunit = "kWhr", g = FALSE, etype = "direct", eff = .x))
 
-head(site2)
+head(site2) # List of each 20 paramters
+
 ```
 
 ## Data Structures {.scrollable}
@@ -208,13 +209,13 @@ head(site2)
 -   R often returns lists - but not so easy for organization
 
 -   ask yourself what you want to do with the data, then put in a structure that will make this easy
-  -  a data frame is often the best structure for graphing
+
+-   a data frame is often the best structure for graphing
 
 -   e.g two different data frames
 
     -   plot variation in mean annual electricity by *eff*
     -   plot variation in each year due to variation in *eff*
-   
 
 ```{r sen1b, eval=T}
 
@@ -223,7 +224,7 @@ head(str(site2))
 # just the annual data (not the mean annual time series), and then reformat as a data frame with nice column names
 tmp <- map_dfr(site2, `[`, c("annual"))
 
-# convert from tibble to a data frame
+# convert from tibble to a data frame with nicer labels 
 site2df <- data.frame(year = tmp$annual$year, elect = tmp$annual$elect)
 head(site2df)
 ```
@@ -260,9 +261,9 @@ ggplot(site2df, aes(year, elect, group = year)) +
 
 **Why?**
 
-- Summarizes parameter uncertainty  
-- Highlights interannual trends  
-- Easier comparison across years
+-   Summarizes parameter uncertainty\
+-   Highlights interannual trends\
+-   Easier comparison across years
 
 ## Plot {.scrollable}
 
@@ -290,6 +291,7 @@ Organize the data
 # we could also plot how the mean annual electricity varies with efficiency (eff from above)
 site2[[1]]
 
+# Extract MEAN annual 
 tmp <- map_df(site2, `[`, c("mean"))
 
 # how variable is electricity generation (mean over all time) with uncertainty in solar efficiency
