@@ -426,15 +426,15 @@ site1$annual
 solarpv(area = 0.1, solar = sierraczosolar, 
         clr = "coral", eunit = "J", g=TRUE)
 
-
 ```
 
 # Visual Checking
 
 -   what issue jumps out - what might be the cause?
+    -   ISSUE: 1944 measurements are super small!
+    -   BECAUSE: only started tracking halfway in 1944.
 -   how would you fix this?
-
-Explore for next class
+    -   FIX: remove 1944 entirely
 
 ## What we are learning so far {.scrollable}
 
@@ -464,4 +464,14 @@ site1 <- solarpv(area = 0.1,
 # keep cleaned up data set for future use
 save(sierraczosolar, file=here("Data/sierraczosolar_clean.rda"))
 
+```
+
+```{r}
+# Swicthed the function to eff (parameter) of 0.6 
+site2 <- solarpv(area = 0.1, 
+          solar = sierraczosolar, clr = "green", eunit = "kW", eff = 0.6, g = TRUE)
+
+
+# Find percent change (new - base / base)
+percent_change <- ((site2$mean -  site1$mean) / site1$mean) * 100
 ```
