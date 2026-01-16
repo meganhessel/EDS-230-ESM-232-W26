@@ -186,18 +186,16 @@ library(tidyverse)
 # first come up with varying values for efficiency 
 # if we don't know efficiency exactly , lets try 20 samples
 
-
 eff <- rnorm(mean = 0.6, sd = 0.1, n = 20)
 
 # use map from purrr to run model for all values of eff
 # notice how map adds the one parameter that is missing from the input list
 
 site2 <- eff %>% map(~ solarpv(area = 0.1,  # Give it all the paramters 
-  solar = sierraczosolar, clr = "green", 
+  solar = sierraczosolar, clr = "green", ethresh = ethresh,
   eunit = "kWhr", g = FALSE, etype = "direct", eff = .x))
 
-head(site2) # List of each 20 paramters
-
+head(site2)
 ```
 
 ## Data Structures {.scrollable}
@@ -336,3 +334,61 @@ Sensitivity is more general - and the first step in uncertainty analysis, but al
 Learn to "play" with models
 
 # Assignment 3
+
+# Lab
+
+### Controlling for a 15% uncertainty 
+
+```{r}
+# Creating +- 15% Uncertainity 
+ethresh <- rnorm(mean = 10000, sd = 0.15*10000, n = 20)
+# Other way to do this 
+base_thresh <- 10000
+deviation <- 0.15
+ethresh_2 <- runif(
+  base_thresh + deviation * base_thresh, 
+  base_thresh - deviation * base_thresh, n = 20)
+
+# Run through function 
+site2 <- ethresh %>% 
+  map(~ solarpv(area = 0.1,  # Give it all the paramters 
+  solar = sierraczosolar, clr = "green",
+  eunit = "kWhr", g = FALSE, etype = "direct", ethresh = .x))
+
+
+# Exploratory 
+#head(site2)
+#head(str(site2)) # its a tibble! 
+
+# Combined into 1 dataframe
+tmp <- map_df(site2, `[`, c("annual"))
+site2df <- data.frame(year = tmp$annual$year, 
+                      elect = tmp$annual$elect)
+head(site2df)
+
+
+# Plot! 
+ggplot(site2df, aes(year, elect, group = year)) +
+  geom_boxplot() +
+  labs(y = "Electricity generated in kWhr")
+
+
+
+# Add mean stat
+site2_average <- site2df %>%
+  group_by(year) %>%
+  dplyr::summarize(elect = mean(elect))
+
+
+# Plot with Statistic 
+ggplot(site2df, aes(year, elect, group = year)) +
+  geom_boxplot() +
+  labs(y = "Electricity in W") +
+  geom_line(data = site2_average, aes(year, elect, group = 1), col = "orange", lwd= 1)
+
+
+# Plot: X -> Y 
+ggplot(site2_mean, aes(eff, mean)) +
+  geom_point(size=2, col="orange") +
+  labs(y = "Electricity in kWhr", x = "Solar Efficiency")
+```
