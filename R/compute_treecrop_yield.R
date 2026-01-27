@@ -19,7 +19,7 @@ compute_treecrop_yield <- function(clim, crop = 2, override_defaults = TRUE,
                                    Tmax_month_coeff = NULL, Tmax_month_coeff2 = NULL,
                                    P_month_coeff = NULL, P_month_coeff2 = NULL,
                                    Intercept = NULL) {
-  # initialize indices for different trees
+  # Initialize indices for different trees
   winegrapes=1
   almonds=2
   tablegrapes=3
@@ -29,7 +29,7 @@ compute_treecrop_yield <- function(clim, crop = 2, override_defaults = TRUE,
 
   if (is.null(Tmin_month_coeff)) {
     Tmin_month_coeff<- matrix(0, nrow = 6, ncol = 12)
-    # set default non-zero values
+    # Set default non-zero values
     Tmin_month_coeff[winegrapes, 4] <- 2.65
     Tmin_month_coeff[almonds, 2] <- -0.015
     Tmin_month_coeff[tablegrapes, 7] <- 6.93
@@ -40,7 +40,7 @@ compute_treecrop_yield <- function(clim, crop = 2, override_defaults = TRUE,
 
   if (is.null(Tmin_month_coeff2)) {
     Tmin_month_coeff2<- matrix(0, nrow = 6, ncol = 12)
-    # set default non-zero values
+    # Set default non-zero values
     Tmin_month_coeff2[winegrapes, 4] <- -0.17
     Tmin_month_coeff2[almonds, 2] <- -0.0046
     Tmin_month_coeff2[tablegrapes, 7] <- -0.19
@@ -75,7 +75,6 @@ compute_treecrop_yield <- function(clim, crop = 2, override_defaults = TRUE,
 
   if (is.null(P_month_coeff2)) {
     P_month_coeff2 <- matrix(0, nrow = 6, ncol = 12)
-
     P_month_coeff2[winegrapes, 6] <- -4.93
     P_month_coeff2[winegrapes, 9] <- 1.54
     P_month_coeff2[almonds, 1] <- 0.0043
@@ -90,7 +89,7 @@ compute_treecrop_yield <- function(clim, crop = 2, override_defaults = TRUE,
     Intercept <- c(-10.5,0.28,-73.89,-2.47,-5.83,-288.09)
   }
 
-# create a growing year to deal with negative months
+# Create a growing year to deal with negative months
   clim <- clim %>% mutate(
     gwy = ifelse(month >= 8, year + 1, year)
   )
@@ -102,7 +101,7 @@ compute_treecrop_yield <- function(clim, crop = 2, override_defaults = TRUE,
       precip = sum(precip), .groups = "drop"
     )
 
-  # compute yield
+  # Compute yield
   compute_yield <- function(Tmin_month_coeff, Tmin_month_coeff2, Tmax_month_coeff, Tmax_month_coeff2,
                             Precip_month_coeff, Precip_month_coeff2, Intercept, clim_month_allyears, tgwy) {
     clim_month = subset(clim_month_allyears, gwy==tgwy)
