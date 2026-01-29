@@ -227,6 +227,7 @@ b <- ggplot(profit_solar, aes(year, netpre, group = year)) +
   geom_boxplot() +
   labs(title = "Solar", y = "Net Present Values in 1945 Dollars", x = "Year")
 ggarrange(a, b)
+
 ```
 
 ## Better comparison - same graph
