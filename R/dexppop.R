@@ -9,5 +9,5 @@
 
 dexppop = function(time, P, r) {
   dexpop = r*P
-  return(list(dexpop))
+  return(list(dexpop)) # needs to return list 
 }
