@@ -13,7 +13,7 @@
 #' almond yield (anomoly from California mean in ton/acre, mean, maximum and minimum yields
 #'
 #'
-compute_almond_yield <- function(clim, Tmincoeff1 = -0.015, Tmincoeff2 = -0.0046, Pcoeff1 = -0.07, Pcoeff2 = 0.0043, intercep = 0.28) {
+compute_almond_yield <- function(Tmincoeff1 = -0.015, Tmincoeff2 = -0.0046, Pcoeff1 = -0.07, Pcoeff2 = 0.0043, intercep = 0.28, clim) {
   # extracted required climate variables
 
   tmp <- clim %>%
