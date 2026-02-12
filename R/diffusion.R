@@ -11,9 +11,12 @@
 #' @param D  diffusivity (how easily the chemical diffuses (s/m2)
 #' @examples
 #' diff1(initialC = 10, nx = 10, dx = 1, nt = 8, dt = 1, D = 0.06, area = 10)
+
 diff1 <- function(initialC, nx, dx, nt, dt, D, area) {
+  
   # create a data structure to store concentrations, at nx points and nt times
   conc <- matrix(nrow = nt, ncol = nx)
+  
   # also keep track of fluxes in an out of each point at each time
   qin <- matrix(nrow = nt, ncol = nx)
   qout <- matrix(nrow = nt, ncol = nx)
