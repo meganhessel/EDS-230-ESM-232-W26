@@ -263,24 +263,47 @@ TIP: a useful plotting strategy is to plot model output against parameter with t
 both <- cbind.data.frame(parms, gs = sens_Catm_Sobol$y)
 
 # look at overall gs sensitvity to uncertainty
-ggplot(both, aes(x = gs)) +
+plot_gs_sens <- ggplot(both, aes(x = gs)) +
   geom_histogram() +
-  geom_vline(xintercept = mean(both$gs), col = "cyan")
+  geom_vline(xintercept = mean(both$gs), col = "cyan") + 
+  labs(title = "Histogram of gs sensitvity")
+
+plot_gs_sens
+
 
 # look at response of conductance to the two interesting variables
-ggplot(both, aes(v, gs, col = height)) +
-  geom_point() +
-  labs(y = "Conductance (mm/s)", x = "Windspeed")
+plot_ws_height <- ggplot(both, aes(v, gs, col = height)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Conductance and veg Height via windspeed", 
+       y = "Conductance (mm/s)", 
+       x = "Windspeed") 
+
+plot_ws_height
 
 
 # look at response of conductance to the two most important variables
-ggplot(both, aes(k_d, gs, col = k_o)) +
-  geom_point() +
-  labs(y = "Conductance (mm/s)", x = "k_d parameter")
+plot_kd_ko <- ggplot(both, aes(k_d, gs, col = k_o)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Conductance and k_o via k_d", 
+       y = "Conductance (mm/s)", 
+       x = "k_d parameter")
+
+plot_kd_ko
+
 # use second most sensitive parameter (using most important as color)
-ggplot(both, aes(k_o, gs, col = k_d)) +
-  geom_point() +
-  labs(y = "Conductance (mm/s)", x = "k_d parameter")
+plot_ko_kd <- ggplot(both, aes(k_o, gs, col = k_d)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Conductance and k_d via k_o", 
+       y = "Conductance (mm/s)", 
+       x = "k_d parameter")
+
+plot_ko_kd 
+
+sobol_sens_plots <- (plot_gs_sens / plot_ws_height) | (plot_kd_ko / plot_ko_kd)
+
+ggsave(here::here("figs", "sobol_sens_plots.png"), height = 8, width = 10)
+
+
 ```
 
 ## Second order indices {.scrollable}
