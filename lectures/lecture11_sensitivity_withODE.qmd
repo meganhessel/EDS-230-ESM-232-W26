@@ -27,6 +27,8 @@ Dynamic models often give you many many outputs
 
 So if we are asking 'sensitivity of what' we need to summarize results in some way (reduce their dimensionality )
 
+ORDINARY DIFFERINTAL EQUATIONS = ODE
+
 ## Some options for reducing output dimensionality (summarizing output) {.scrollable}
 
 Depends on what is important for your model application
@@ -89,24 +91,25 @@ Pinitial <- 10
 # want to learn about sensitivity to growth rate (r) and carrying capacity
 # set the number of parameters
 np <- 2000
+
 # Assume parameters are normally distributed
 # sample K with mean of 200, standard devidation of  50
 # sample r with mean of 0.02 and standard deviation of 0.005
 K <- rnorm(mean = 200, sd = 50, n = np)
 r <- rnorm(mean = 0.02, sd = 0.005, n = np)
-X1 <- cbind.data.frame(r = r, K = K)
+X1 <- cbind.data.frame(r = r, K = K) # put together 
 
-# repeat to get our second set of samples
+# REPEAT to get our second set of samples
 K <- rnorm(mean = 200, sd = 50, n = np)
 r <- rnorm(mean = 0.02, sd = 0.005, n = np)
 X2 <- cbind.data.frame(r = r, K = K)
 
 # fix any negative values and they are not meaningful
-X1 <- X1 %>% map_df(pmax, 0.0)
+X1 <- X1 %>% map_df(pmax, 0.0) # set the growth rates to 0 
 X2 <- X2 %>% map_df(pmax, 0.0)
+# ^^^ for every max in the dataframe, set it to 0 
 
-# create our sobel object and get sets ofparameters for running the model
-
+# create our SOBOL OBJECT and get sets ofparameters for running the model
 sens_P <- sobolSalt(model = NULL, X1, X2, nboot = 300)
 
 # our parameter sets are
@@ -162,40 +165,60 @@ compute_pop_metrics <- function(result, thresh) {
   
   # find when populatin is greater than the threshold
   idx <- which(result$P > thresh)[1]
+  # ^^ first time the population is greater than the threshold 
+  
   # account for sitation with threshold is never reached
   idx <- ifelse(is.na(idx), length(result$P), idx)
-  threshyear <- result$time[idx]
-  # return results
+  threshyear <- result$time[idx] # return actual value 
+  
+  # return results as list 
   return(list(maxpop = maxpop, threshyear = threshyear))
 }
 
-# Test that it works
+
+
+# Test that it works- SIMULATION TIMES 
+
 # try it on our first parameter set, and look at when it gets to 100
 # initial population
-Pinitial=10
-# run for 500 days
-simtimes = seq(from=1, to=500, by=5)
-# use the first parameter set (or you could just pick a test value), not the list because ode wants parameters as a list, so name each
-parmtest = list(r=sens_P$X[1,"r"],K=sens_P$X[1,"K"])
+Pinitial= <- 10
 
-# run ode
-result = ode(y = Pinitial, times = simtimes, func = dpopgrowth, parms = parmtest)
-# turn ode results into a labelled data frame 
-result = data.frame(time=result[,1], P=result[,2])
+# run for 500 days
+simtimes <- seq(from=1, to=500, by=2) 
+
+# use the first parameter set (or you could just pick a test value), not the list because ode wants parameters as a list, so name each
+parmtest <- list(r=sens_P$X[1,"r"],K=sens_P$X[1,"K"])
+
+# run ode!!!!
+result <- ode(y = Pinitial, times = simtimes, func = dpopgrowth, parms = parmtest)
+
+
+# turn ode results into a labelled data frame - 1st col & 2nd col
+result <-  data.frame(time=result[,1], P=result[,2])
+
 # run metrics on results
 compute_pop_metrics(result, 100)
 
 # great but we need to apply the ode and this function for all of our parameters
 
+```
+
+Great!
+
+Do what just did, and now make it a wrapper function with all the parameters. :)
+
+wrapper funtion - RUN THE ODE AND EXTRACT RESULTS for all parameters at once
+
+```{r}
 # define a wrapper function to do everything we need - run solver and compute metrics - and send back results for each parameter
+
 
 # lets make the threshold 90% of carrying capacity
 p_wrapper <- function(r, K, Pinitial, simtimes, odefunc, metricfunc, metricpars) {
   
   # create parameter list
   parms <- list(r = r, K = K)
-  
-  # run ode
+
   result <- ode(y = Pinitial, times = simtimes, func = odefunc, parms = parms, method="euler")
   
   # results as a data frame
@@ -220,24 +243,36 @@ p_wrapper(
 p_wrapper(r=sens_P$X[1,"r"], K=sens_P$X[1,"K"],
           Pinitial=10, simtimes=simtimes, odefunc=dpopgrowth,
           metricfunc=compute_pop_metrics, metricpars)
+
 ```
 
 ## Next step {.scrollable}
 
 Run the wrapper for all parameters and look at results
 
+USE THE WRAPPER FUNCTION FOR EVERY ROW OF parameter sets (that sobol object created) with pmap
+
 ```{r userwarpper, error=TRUE}
 # now use pmap as we did before
 
-allresults <- as.data.frame(sens_P$X) %>% pmap(p_wrapper, Pinitial = Pinitial, simtimes = simtimes, odefunc = dpopgrowth, metricfunc = compute_pop_metrics, metricpars=list(thresh=100))
+allresults <- as.data.frame(sens_P$X) %>% 
+  pmap(p_wrapper, 
+       Pinitial = Pinitial, simtimes = simtimes,
+       odefunc = dpopgrowth, metricfunc = compute_pop_metrics,
+       metricpars=list(thresh=100))
+
 
 # extract out results from pmap into a data frame
 allres <- allresults %>% map_dfr(`[`, c("maxpop", "threshyear"))
 
 # do a quick summary to get a sense of the range
 summary(allres)
+
+
+# ----------------- GRAPHING ----------------
 # create boxplots of our two metrics for all parameters - use facet wrap since population and year are different y-axis
 tmp <- allres %>% pivot_longer(cols = everything(), names_to = "metric", values_to = "value")
+
 ggplot(tmp, aes(metric, value)) +
   geom_boxplot()+facet_wrap(~metric, scales="free")
 ```
@@ -257,6 +292,8 @@ ggplot(tmp, aes(metric, value)) +
 # lets start with threshyear
 # "tell" the sensitivity analysis object - re-name so we keep separate
 sens_P_threshyear <- sensitivity::tell(sens_P, allres$threshyear)
+# ^^ go caculate the senstivity indicies 
+
 # first-order indices (main effect without co-variance)
 rownames(sens_P_threshyear$S) <- c("r", "K")
 sens_P_threshyear$S
@@ -270,6 +307,7 @@ sens_P_threshyear$T
 allresp = as.data.frame(cbind(sens_P$X, allres))
 ggplot(allresp, aes(K, threshyear, col=r ))+geom_point()+
   labs(y="Year that threshold is reached", x="K")
+# sensitive to both k and r
 ```
 
 ## Repeat for Maximum Population Reached {.scrollable}
@@ -304,7 +342,7 @@ if it doesn't there are numerical issues - try running more samples
 
 ## Error messages from Sobol {.scrollable}
 
-*All values of t are equal to 0.999999999999856 \n Cannot calculate confidence intervals*
+*All values of t are equal to 0.999999999999856* \n Cannot calculate confidence intervals
 
 relationship looks like its completely prescribed - which is true in the case of carrying capacity
 
@@ -326,8 +364,7 @@ Suggest that the solver (numerical integration) had issues
     *result = ode(y=Pinitial, times=simtimes, func=func, parms=parms, method="daspk")*
     ```
 
--   "stiff" problems are harder for numerical integration to solve - (small changes have big impacts); a threshold carrying capacity does that
-## Ways to use dynamic models {.scrollable}
+-   "stiff" problems are harder for numerical integration to solve - (small changes have big impacts); a threshold carrying capacity does that \## Ways to use dynamic models {.scrollable}
 
 Goal: To provide insight into environmental systems, and how they respond to intervention/disturbance/change
 
@@ -378,7 +415,6 @@ Disturbance is integrated into the model [**endogenous**]{style="color:orange"}
     -   Pulse - intervals/one-time - could be a shock to the system
 
 Examples?
-
 
 ## [Assignment]{style="color:orange"} {.scrollable}
 
