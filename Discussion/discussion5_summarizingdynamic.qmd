@@ -21,9 +21,9 @@ dexppop_play
 
 # create parameter list
 initalrabbits <- 2
-years <- seq(from = 1, to = 100, by = 2)
+years <- seq(from = 1, to = 100, by = 2) # time steps 
 
-newparms <- list(r = 0.03, carry_capacity = 300)
+newparms <- list(r = 0.03, carry_capacity = 300) # list of parameters 
 
 # apply solver
 results <- ode(initalrabbits, years, dexppop_play, newparms)
@@ -129,6 +129,8 @@ Lets say this was a pollutant injected into a stream...
 # graph a single point in space through time
 # single column (time)
 plot(resfast_fixtime$conc[, 3], ylab = "Conc. at 2 spatial units from origin (1+2)", xlab = "time step")
+
+
 ```
 
 -   what if we were concerned about all locations
