@@ -218,6 +218,7 @@ Compute trajectories of forest biomass (or carbon) over time - given different h
 # lets vary the harvest rates from 0.0 to 0.4
 harvestr <- seq(from = 0.0, to = 0.4, by = 0.025)
 # save all of the trajectories
+
 # use a wrapper function to just return the carbon trajectories from ODE output
 getcarbon <- function(Cinitial, tm, harv, K, r, hfunc) {
   # create parameter list for ODE
@@ -229,8 +230,6 @@ getcarbon <- function(Cinitial, tm, harv, K, r, hfunc) {
    res <- as.data.frame(res)
   # return just the carbon trajectory 
   return(carbon = res$carbon)
-
-
 }
 
 
@@ -266,7 +265,6 @@ res
 ```{r harvest2plot, echo=TRUE}
 # put in to a form where we can plot
 
-	
 resl <- res %>% pivot_longer(names_to = "harvestr", values_to = "carbon", cols = -time)
 # graph
 
@@ -399,6 +397,7 @@ res <- as.data.frame(res)
 colnames(res) <- c("time", "C")
 
 compute_short_long_C(res)
+
 ```
 
 ## Build our wrapper function and run for all the parameter sets {.scrollable}
