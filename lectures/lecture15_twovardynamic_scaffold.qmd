@@ -122,6 +122,7 @@ lotvmod
 
 # note the use of with
 # initial conditions
+c(prey)
 
 # time points to see results
 

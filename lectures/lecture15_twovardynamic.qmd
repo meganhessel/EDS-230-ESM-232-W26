@@ -23,9 +23,9 @@ library(ggpubr)
 
 ## Dynamic models
 
-- differential equations used for prediction, mechanistic understanding, and decision/management support
+-   differential equations used for prediction, mechanistic understanding, and decision/management support
 
-- we have focused on models with one dependent variable (e.g population size, or concentration of a pollutant)
+-   we have focused on models with one dependent variable (e.g population size, or concentration of a pollutant)
 
 ## Systems of equations {.scrollable}
 
@@ -40,8 +40,6 @@ What if we have more than one variable that is evolving through time and space?
 -   household consumption and savings through time (when consumption depends on savings and vice versa)
 
 These require several differential equations that have to be solved simultaneously
-
-
 
 ## Systems of equations {.scrollable}
 
@@ -127,7 +125,7 @@ lotvmod
 currpop <- c(prey = 10, pred = 1)
 
 # time points to see results
-days <- seq(from = 1, to = 100, by = 1)
+days <- seq(from = 1, to = 100, by = 1) # Run the model for 100 days 
 
 # set parameters
 pars <- c(rprey = 0.5, alpha = 0.3, eff = 0.2, pmort = 0.2, K = 100)
@@ -156,8 +154,11 @@ res <- ode(func = lotvmod, y = currpop, times = days, parms = pars)
 ```{r}
 # graph the results
 head(res)
-# rearrange for easy plotting
+
+# rearrange for easy plotting - Make tidy data 
 resl <- as.data.frame(res) %>% pivot_longer(-time, names_to = "animal", values_to = "pop")
+head(resl)
+
 p1 <- ggplot(resl, aes(time, pop, col = animal)) +
   geom_line()
 
@@ -366,8 +367,7 @@ compute_metrics <- function(result) {
 }
 
 # build a wrapper function
-
-
+r
 p_wrapper <- function(rprey, alpha, eff, pmort, K, currpop, days, func) {
   parms <- list(rprey = rprey, alpha = alpha, eff = eff, pmort = pmort, K = K)
   result <- ode(y = currpop, times = days, func = func, parms = parms)
