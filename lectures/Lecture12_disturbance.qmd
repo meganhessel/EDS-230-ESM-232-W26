@@ -414,6 +414,7 @@ p_wrapper <- function(r, harv, K, Cinitial, simtimes, odefunc, metricfunc) {
   return(metrics)
 }
 
+function(Time, biomass, parms) 
 
 # try it out
 tm <- seq(from = 1, to = 50)
