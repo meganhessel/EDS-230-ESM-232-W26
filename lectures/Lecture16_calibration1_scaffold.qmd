@@ -291,11 +291,19 @@ msage = readRDS(here("Data/msage.RDS"))
 #View(msage)
 
 # first rearrange so we can plot all results
+msagel <- msage %>% 
+  pivot_longer(cols = -c("date", "obs", "wy", "day", "month", "year"), 
+               names_to = "run", 
+               values_to = "str")
 
 # now plot
-
-
-# lets add observed streamflow
+ggplot(subset(msagel, wy == 1970), 
+       aes(as.Date(date), str, col=run))+
+  geom_line()+
+  geom_line(data=subset(msage, wy == 1970), 
+            aes(as.Date(date), obs), linewidth=2, col="black")+
+  labs(y="Streamflow", x="Date") + 
+  theme(legend.position = "none")
 
 
 # try another year

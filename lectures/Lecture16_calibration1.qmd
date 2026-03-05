@@ -307,7 +307,10 @@ msagel <- msage %>%
   )
 
 # now plot
-p1=ggplot(subset(msagel, wy == 1970), aes(as.Date(date), str, col=run))+geom_line()+theme(legend.position = "none")
+p1=ggplot(subset(msagel, wy == 1970), 
+          aes(as.Date(date), str, col=run))+
+  geom_line()+
+  theme(legend.position = "none")
 p1
 
 # lets add observed streamflow
@@ -327,17 +330,25 @@ source(here("R/nse.R"))
 nse
 
 # compute nse for each parameter set
+res = msage %>% 
+  select(-date, -month, -day, -year, -wy, -obs ) %>% 
+  map_dbl(nse, o=msage$obs) # map applies function to lots of data, return double 
 
-res = msage %>% select(-date, -month, -day, -year, -wy, -obs ) %>% map_dbl(nse, o=msage$obs)
 head(res)
 summary(res)
 
-# basic calibration would be picking a single parameters set
+# basic calibration would be picking a single parameters set 
+# Choose the max result 
 best_par = which.max(res)
-# lets plot the best parameter set
+best_par
 
-ggplot(msage, aes(as.Date(date), msage[,best_par]))+geom_line(col="red")+
-  geom_line(data=msage, aes(as.Date(date), obs), col="black", linetype=2)+labs(y="Streamflow", x="Date")
+# lets plot the best parameter set 
+# subset best parameter set 
+ggplot(msage, aes(as.Date(date), msage[,best_par]))+
+  geom_line(col="red")+ # observed 
+  geom_line(data=msage, # Best parameter set 
+            aes(as.Date(date), obs), col="black", alpha = 0.7)+
+  labs(y="Streamflow", x="Date")
 
 # what would be acceptable?
 
@@ -350,6 +361,85 @@ ggplot(msage, aes(as.Date(date), msage[,best_par]))+geom_line(col="red")+
 -   consider subseting to a specific season (e.g. summer) or specific flow conditions (e.g. low flow) and compute your metric for that subset of the data
 
 -   add the quiz the column number of your metric
+
+Relative Error (%)
+
+```{r}
+# Compute metrics for Relative Error 
+compute_RE = function(m, o) {
+  err = m - o
+  meanobs = mean(o)
+  return(mean(err) / meanobs)
+} 
+
+# Run metrics over dataset 
+res <- msage %>% 
+  select(-date, -month, -day, -year, -wy, -obs ) %>% 
+  map_dbl(compute_RE, o=msage$obs)
+
+# look at resulst 
+head(res)
+summary(res)
+
+# basic calibration would be picking a single parameters set 
+# Choose the max result 
+best_par = which.max(res)
+
+best_par
+```
+
+Mean Absolute Error
+
+```{r}
+# Compute metrics for Relative Error 
+compute_mas = function(m, o) {
+  err = abs(m - o)
+  n = length(o)
+  return(sum(err) /n)
+} 
+
+# Run metrics over dataset 
+res <- msage %>% 
+  select(-date, -month, -day, -year, -wy, -obs ) %>% 
+  map_dbl(compute_mas, o=msage$obs)
+
+# look at resulst 
+head(res)
+summary(res)
+
+# basic calibration would be picking a single parameters set 
+# Choose the max result 
+best_par = which.max(res)
+
+best_par
+
+```
+
+Root Mean Square Error (RMSE)
+
+```{r}
+# Compute metrics for Relative Error 
+compute_rmse = function(m, o) {
+  err = (m - o)^2
+  n = length(o)
+  return(sqrt(sum(err) /n))
+} 
+
+# Run metrics over dataset 
+res <- msage %>% 
+  select(-date, -month, -day, -year, -wy, -obs ) %>% 
+  map_dbl(compute_rmse, o=msage$obs)
+
+# look at resulst 
+head(res)
+summary(res)
+
+# basic calibration would be picking a single parameters set 
+# Choose the max result 
+best_par = which.max(res)
+
+best_par
+```
 
 ## Equifinality
 
